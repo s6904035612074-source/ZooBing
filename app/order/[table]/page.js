@@ -1,7 +1,7 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import { supabase } from "../../../lib/supabaseClient";
+import { supabase } from "../../../supabaseClient";
 
 const ADULT_PRICE = 289;
 const CHILD_PRICE = 145;
