@@ -13,4 +13,4 @@ npm run dev
 ตั้งค่า Environment Variables `NEXT_PUBLIC_SUPABASE_URL` และ `NEXT_PUBLIC_SUPABASE_ANON_KEY` ใน Vercel แล้ว deploy
 
 ## หมายเหตุ
-โปรเจกต์ใช้ Next.js เวอร์ชันล่าสุด — `params` ของ Dynamic Route เป็น Promise ต้อง unwrap ด้วย `use()` จาก `react` (ดูรายละเอียดและโครงสร้างตารางใน `CLAUDE.md`)
+โปรเจกต์ใช้ Next.js เวอร์ชันล่าสุด — `params` ของ Dynamic Route เป็น Promise ต้อง unwrap ด้วย `use()` จาก `react` (ดูรายละเอียดและ โครงสร้างตารางใน `CLAUDE.md`)
