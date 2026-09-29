@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
+import { supabase } from "../../supabaseClient";
+
 
 const styles = {
   main: { maxWidth: 480, margin: "0 auto", padding: 20 },
