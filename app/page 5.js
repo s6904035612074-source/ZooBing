@@ -1,0 +1,116 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { supabase } from "../../lib/supabaseClient";
+
+const REFRESH_MS = 5000; // ดึงออเดอร์ใหม่ทุก 5 วินาที
+
+function minutesAgo(iso) {
+  return Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 60000));
+}
+
+export default function KitchenPage() {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [busyId, setBusyId] = useState(null);
+
+  async function loadOrders() {
+    const { data, error: err } = await supabase
+      .from("orders")
+      .select("id, table_number, items, created_at")
+      .eq("status", "received")
+      .order("created_at", { ascending: true });
+
+    if (err) {
+      setError("โหลดออเดอร์ไม่สำเร็จ");
+    } else {
+      setError("");
+      setOrders(data || []);
+    }
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    loadOrders();
+    const timer = setInterval(loadOrders, REFRESH_MS);
+    return () => clearInterval(timer);
+  }, []);
+
+  async function markDone(id) {
+    setBusyId(id);
+    const { error: err } = await supabase
+      .from("orders")
+      .update({ status: "done" })
+      .eq("id", id)
+      .eq("status", "received");
+
+    if (err) {
+      setError("อัปเดตไม่สำเร็จ ลองอีกครั้ง");
+    } else {
+      setOrders((prev) => prev.filter((o) => o.id !== id));
+    }
+    setBusyId(null);
+  }
+
+  return (
+    <main style={{ maxWidth: 700, margin: "0 auto", padding: 16, fontSize: 20 }}>
+      <h1 style={{ marginBottom: 4 }}>ครัว ZooBing</h1>
+      <p style={{ marginTop: 0, color: "#666" }}>
+        ออเดอร์ที่รอทำ: {orders.length} รายการ (อัปเดตอัตโนมัติ)
+      </p>
+
+      {error && <p style={{ color: "#d32f2f", fontWeight: 600 }}>{error}</p>}
+      {loading && <p>กำลังโหลด...</p>}
+      {!loading && orders.length === 0 && (
+        <p style={{ textAlign: "center", marginTop: 40, color: "#888" }}>ยังไม่มีออเดอร์ใหม่</p>
+      )}
+
+      {orders.map((order) => (
+        <div
+          key={order.id}
+          style={{
+            background: "#fff",
+            border: "2px solid #f5a623",
+            borderRadius: 12,
+            padding: 16,
+            marginBottom: 14,
+          }}
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+            <strong style={{ fontSize: 28 }}>โต๊ะ {order.table_number}</strong>
+            <span style={{ color: "#666" }}>สั่งเมื่อ {minutesAgo(order.created_at)} นาทีที่แล้ว</span>
+          </div>
+
+          <ul style={{ margin: "12px 0", paddingLeft: 24 }}>
+            {(order.items || []).map((item, i) => (
+              <li key={i} style={{ marginBottom: 4 }}>
+                {item.name} × <strong>{item.quantity}</strong>
+              </li>
+            ))}
+          </ul>
+
+          <button
+            type="button"
+            onClick={() => markDone(order.id)}
+            disabled={busyId === order.id}
+            style={{
+              width: "100%",
+              minHeight: 52,
+              fontSize: 20,
+              fontWeight: 700,
+              color: "#fff",
+              background: "#2e7d32",
+              border: "none",
+              borderRadius: 10,
+              cursor: "pointer",
+              opacity: busyId === order.id ? 0.6 : 1,
+            }}
+          >
+            {busyId === order.id ? "กำลังบันทึก..." : "ทำเสร็จแล้ว ✓"}
+          </button>
+        </div>
+      ))}
+    </main>
+  );
+}
